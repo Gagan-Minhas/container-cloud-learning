@@ -129,7 +129,7 @@ Let's create an ECS task definition for our API:
 
 ```bash
 # Store your username in a variable
-username=$(aws sts get-caller-identity --query "Arn" --output text | cut -d/ -f2)
+aws_username=$(aws sts get-caller-identity --query "Arn" --output text | cut -d/ -f2)
 
 # Create directory for task definitions
 mkdir -p ~/container-workshop/ecs
@@ -138,13 +138,13 @@ cd ~/container-workshop/ecs
 # Create ECS task definition. Replace <YOUR-USERNAME> with your AWS username
 cat > api-task-def.json << EOF
 {
-  "family": "flask-api-task-$username",
+  "family": "flask-api-task-$aws_username",
   "networkMode": "awsvpc",
   "executionRoleArn": "arn:aws:iam::$ACCOUNT_ID:role/ecsTaskExecutionRole",
   "containerDefinitions": [
     {
       "name": "flask-api",
-      "image": "$ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/workshop/flask-api:$USERNAME",
+      "image": "$ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/workshop/flask-api:$aws_username",
       "essential": true,
       "portMappings": [
         {
