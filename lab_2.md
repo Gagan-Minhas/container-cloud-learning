@@ -76,7 +76,7 @@ docker build -t flask-api:<YOUR-USERNAME> .
 
 
 # Run the container locally
-docker run -d -p 8080:8080 --name api-test flask-api:latest
+docker run -d -p 8080:8080 --name api-test flask-api:<YOUR-USERNAME> .
 
 # Test the container
 curl http://localhost:8080
@@ -132,7 +132,7 @@ Let's create an ECS task definition for our API:
 mkdir -p ~/container-workshop/ecs
 cd ~/container-workshop/ecs
 
-# Create ECS task definition. Replace <YOUR-USERNAME> with your AWS username
+# Create ECS task definition.
 cat > api-task-def.json << EOF
 {
   "family": "flask-api-task-${aws_username}",
@@ -309,7 +309,7 @@ docker build -t lambda-api:${aws_username} .
 aws ecr create-repository --repository-name workshop/lambda-api || true
 
 # Tag the image for ECR
-docker tag lambda-api:${username} ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/lambda-api:${aws_username}
+docker tag lambda-api:${aws_username} ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/lambda-api:${aws_username}
 
 # Push the image to ECR
 docker push ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/lambda-api:${aws_username}
@@ -341,13 +341,6 @@ aws lambda create-function \
   --timeout 30 \
   --memory-size 512 \
   --tags Workshop=ContainersInCloud
-
-# If the function already exists, update its code
-if [ $? -ne 0 ]; then
-  aws lambda update-function-code \
-    --function-name workshop-container-function \
-    --image-uri ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/lambda-api:latest
-fi
 ```
 
 ### Exercise 3.4: Create API Gateway for Lambda
