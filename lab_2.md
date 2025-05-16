@@ -140,7 +140,7 @@ cat > api-task-def.json << EOF
 {
   "family": "flask-api-task-$aws_username",
   "networkMode": "awsvpc",
-  "executionRoleArn": "arn:aws:iam::$ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "executionRoleArn": "arn:aws:iam::${ACCOUNT_ID}:role/ecsTaskExecutionRole",
   "containerDefinitions": [
     {
       "name": "flask-api",
@@ -213,8 +213,8 @@ echo "Security Group ID: $SG_ID"
 # Create the ECS service
 aws ecs create-service \
   --cluster WorkshopCluster \
-  --service-name flask-api-task-${username} \
-  --task-definition flask-api-task-${username} \
+  --service-name flask-api-task-${aws_username} \
+  --task-definition flask-api-task-${aws_username} \
   --desired-count 1 \
   --launch-type FARGATE \
   --network-configuration "awsvpcConfiguration={subnets=[$SUBNET_IDS],securityGroups=[$SG_ID],assignPublicIp=ENABLED}" \
@@ -231,7 +231,7 @@ echo "Waiting for the service to start..."
 sleep 20
 
 # Get the running task
-TASK_ARN=$(aws ecs list-tasks --cluster WorkshopCluster --service-name flask-api-task-${username} --query "taskArns[0]" --output text)
+TASK_ARN=$(aws ecs list-tasks --cluster WorkshopCluster --service-name flask-api-task-${aws_username} --query "taskArns[0]" --output text)
 
 # Get the ENI details
 ENI=$(aws ecs describe-tasks --cluster WorkshopCluster --tasks $TASK_ARN --query "tasks[0].attachments[0].details[?name=='networkInterfaceId'].value" --output text)
@@ -306,16 +306,16 @@ EOF
 
 ```bash
 # Build the Lambda container image
-docker build -t lambda-api:${username} .
+docker build -t lambda-api:${aws_username} .
 
 # Create an ECR repository for the Lambda container. SKIP this step as repository already exists
 aws ecr create-repository --repository-name workshop/lambda-api || true
 
 # Tag the image for ECR
-docker tag lambda-api:${username} $ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/workshop/lambda-api:${username}
+docker tag lambda-api:${username} ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/lambda-api:${aws_username}
 
 # Push the image to ECR
-docker push $ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/workshop/lambda-api:${username}
+docker push ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/lambda-api:${aws_username}
 ```
 
 ### Exercise 3.3: Create Lambda Function
@@ -337,7 +337,7 @@ sleep 10
 
 # Create the Lambda function
 aws lambda create-function \
-  --function-name workshop-container-function-${username} \
+  --function-name workshop-container-function-${aws_username} \
   --package-type Image \
   --code ImageUri=$ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/workshop/lambda-api:${username} \
   --role arn:aws:iam::${ACCOUNT_ID}:role/lambda-container-role \
