@@ -319,14 +319,14 @@ docker push ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/lambda-api:${
 
 ```bash
 # Create execution role for Lambda. SKIP as role was created ahead of time.
-aws iam create-role \
-  --role-name lambda-container-role \
-  --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"},"Action":"sts:AssumeRole"}]}' || true
+# aws iam create-role \
+#   --role-name lambda-container-role \
+#   --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"},"Action":"sts:AssumeRole"}]}' || true
 
 # Attach the Lambda basic execution policy. SKIP.
-aws iam attach-role-policy \
-  --role-name lambda-container-role \
-  --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole || true
+# aws iam attach-role-policy \
+#   --role-name lambda-container-role \
+#   --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole || true
 
 # Wait a moment for the role to propagate
 echo "Waiting for IAM role to be ready..."
