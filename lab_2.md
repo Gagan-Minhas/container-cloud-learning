@@ -128,9 +128,6 @@ aws ecr describe-images --repository-name workshop/flask-api
 Let's create an ECS task definition for our API:
 
 ```bash
-# Store your username in a variable
-aws_username=$(aws sts get-caller-identity --query "Arn" --output text | cut -d/ -f2)
-
 # Create directory for task definitions
 mkdir -p ~/container-workshop/ecs
 cd ~/container-workshop/ecs
