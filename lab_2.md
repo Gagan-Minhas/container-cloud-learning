@@ -102,20 +102,20 @@ aws configure
 
 # Get AWS account ID
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-username=$(aws sts get-caller-identity --query "Arn" --output text | cut -d/ -f2)
+aws_username=$(aws sts get-caller-identity --query "Arn" --output text | cut -d/ -f2)
 echo "Your AWS Account ID: $ACCOUNT_ID"
 
 # Create an ECR repository (if it doesn't exist). In our case it exists, so skip the create-repository step.
 aws ecr create-repository --repository-name workshop/flask-api || true
 
 # Login to Amazon ECR
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
 
 # Tag the image for ECR
-docker tag flask-api:${username} ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/flask-api:<YOUR-USERNAME>
+docker tag flask-api:${username} ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/flask-api:${aws_username}
 
 # Push the image to ECR
-docker push ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/flask-api:<YOUR-USERNAME>
+docker push ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/flask-api:${aws_username}
 
 # Verify the image in ECR
 aws ecr describe-images --repository-name workshop/flask-api
