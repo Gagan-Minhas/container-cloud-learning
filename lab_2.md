@@ -106,7 +106,7 @@ aws_username=$(aws sts get-caller-identity --query "Arn" --output text | cut -d/
 echo "Your AWS Account ID: $ACCOUNT_ID"
 
 # Create an ECR repository (if it doesn't exist). In our case it exists, so skip the create-repository step.
-aws ecr create-repository --repository-name workshop/flask-api || true
+# aws ecr create-repository --repository-name workshop/flask-api || true
 
 # Login to Amazon ECR
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
@@ -185,7 +185,7 @@ aws ecs register-task-definition --cli-input-json file://api-task-def.json
 
 ```bash
 # Create ECS cluster if it doesn't exist. SKIP as it already exists.
-aws ecs create-cluster --cluster-name WorkshopCluster || true
+# aws ecs create-cluster --cluster-name WorkshopCluster || true
 ```
 
 ### Exercise 2.3: Deploy to ECS Fargate
