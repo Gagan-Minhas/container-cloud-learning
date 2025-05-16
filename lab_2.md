@@ -336,7 +336,7 @@ sleep 10
 aws lambda create-function \
   --function-name workshop-container-function-${aws_username} \
   --package-type Image \
-  --code ImageUri=$ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/workshop/lambda-api:${username} \
+  --code ImageUri=${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/lambda-api:${aws_username} \
   --role arn:aws:iam::${ACCOUNT_ID}:role/lambda-container-role \
   --timeout 30 \
   --memory-size 512 \
@@ -346,7 +346,7 @@ aws lambda create-function \
 if [ $? -ne 0 ]; then
   aws lambda update-function-code \
     --function-name workshop-container-function \
-    --image-uri $ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/workshop/lambda-api:latest
+    --image-uri ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/lambda-api:latest
 fi
 ```
 
