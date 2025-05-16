@@ -141,7 +141,7 @@ cat > api-task-def.json << EOF
   "containerDefinitions": [
     {
       "name": "flask-api",
-      "image": "$ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/workshop/flask-api:${aws_username}",
+      "image": "${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/flask-api:${aws_username}",
       "essential": true,
       "portMappings": [
         {
