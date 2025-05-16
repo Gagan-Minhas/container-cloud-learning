@@ -112,7 +112,7 @@ echo "Your AWS Account ID: $ACCOUNT_ID"
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
 
 # Tag the image for ECR
-docker tag flask-api:${username} ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/flask-api:${aws_username}
+docker tag flask-api:${aws_username} ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/flask-api:${aws_username}
 
 # Push the image to ECR
 docker push ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/flask-api:${aws_username}
