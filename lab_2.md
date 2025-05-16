@@ -135,7 +135,7 @@ cd ~/container-workshop/ecs
 # Create ECS task definition. Replace <YOUR-USERNAME> with your AWS username
 cat > api-task-def.json << EOF
 {
-  "family": "flask-api-task-$aws_username",
+  "family": "flask-api-task-${aws_username}",
   "networkMode": "awsvpc",
   "executionRoleArn": "arn:aws:iam::${ACCOUNT_ID}:role/ecsTaskExecutionRole",
   "containerDefinitions": [
