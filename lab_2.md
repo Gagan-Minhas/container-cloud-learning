@@ -114,11 +114,13 @@ Now we'll push our image to Amazon ECR:
 
 #### Configure AWS credentials (if not already configured)
 ```bash
-aws configure
+aws configure --profile workshop
 # Enter your AWS Access Key ID when prompted
 # Enter your AWS Secret Access Key when prompted
 # Region: us-east-1
 # Output format: json
+
+export AWS_PROFILE=workshop
 
 # Get AWS account ID
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
