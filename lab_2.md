@@ -44,14 +44,18 @@ def health():
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
 EOF
+```
 
-# Create requirements.txt
+#### Create requirements.txt
+```bash
 cat > requirements.txt << 'EOF'
 flask==2.0.1
 werkzeug==2.0.3
 EOF
+```
 
-# Create Dockerfile
+#### Create Dockerfile
+```bash
 cat > Dockerfile << 'EOF'
 FROM python:3.9-slim
 
@@ -73,18 +77,24 @@ EOF
 
 Let's build and test our application locally:
 
+
+#### Build the Docker image
 ```bash
-# Build the Docker image
 docker build -t flask-api:<YOUR-USERNAME> .
+```
 
-
-# Run the container locally
+#### Run the container locally
+```bash
 docker run -d -p 8080:8080 --name api-test flask-api:<YOUR-USERNAME> .
+```
 
-# Test the container
+#### Test the container
+```bash
 curl http://localhost:8080
+```
 
-# Clean up the local container
+#### Clean up the local container
+```bash
 docker stop api-test
 docker rm api-test
 ```
@@ -95,8 +105,8 @@ You should see JSON output with the container ID and timestamp.
 
 Now we'll push our image to Amazon ECR:
 
+#### Configure AWS credentials (if not already configured)
 ```bash
-# Configure AWS credentials (if not already configured)
 aws configure
 # Enter your AWS Access Key ID when prompted
 # Enter your AWS Secret Access Key when prompted
@@ -107,20 +117,28 @@ aws configure
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 aws_username=$(aws sts get-caller-identity --query "Arn" --output text | cut -d/ -f2)
 echo "Your AWS Account ID: $ACCOUNT_ID"
+```
 
-# Create an ECR repository (if it doesn't exist). In our case it exists, so skip the create-repository step.
-# aws ecr create-repository --repository-name workshop/flask-api || true
+#### Create an ECR repository (if it doesn't exist). In our case it exists, so skip the create-repository step.
+#### aws ecr create-repository --repository-name workshop/flask-api || true
 
-# Login to Amazon ECR
+#### Login to Amazon ECR
+```bash
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
+```
 
-# Tag the image for ECR
+#### Tag the image for ECR
+```bash
 docker tag flask-api:${aws_username} ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/flask-api:${aws_username}
+```
 
-# Push the image to ECR
+#### Push the image to ECR
+```bash
 docker push ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/flask-api:${aws_username}
+```
 
-# Verify the image in ECR
+#### Verify the image in ECR
+```bash
 aws ecr describe-images --repository-name workshop/flask-api
 ```
 
