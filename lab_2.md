@@ -258,10 +258,8 @@ Let's verify our service is running and test it:
 # Wait a moment for the service to start
 echo "Waiting for the service to start..."
 sleep 20
-```
 
-#### Get the running task
-```bash
+# Get the running task
 TASK_ARN=$(aws ecs list-tasks --cluster WorkshopCluster --service-name flask-api-task-${aws_username} --query "taskArns[0]" --output text)
 ```
 
