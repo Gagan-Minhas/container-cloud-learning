@@ -286,12 +286,14 @@ curl http://$PUBLIC_IP:8080
 
 Let's modify our API to work with Lambda:
 
+#### Create directory for Lambda container
 ```bash
-# Create directory for Lambda container
 mkdir -p ~/container-workshop/lambda
 cd ~/container-workshop/lambda
+```
 
-# Create Lambda handler file
+#### Create Lambda handler file
+```bash
 cat > app.py << 'EOF'
 import json
 import socket
@@ -313,13 +315,17 @@ def lambda_handler(event, context):
         })
     }
 EOF
+```
 
-# Create requirements.txt
+#### Create requirements.txt
+```bash
 cat > requirements.txt << 'EOF'
 # No external dependencies for this simple example
 EOF
+```
 
-# Create Dockerfile for Lambda
+#### Create Dockerfile for Lambda
+```bash
 cat > Dockerfile << 'EOF'
 FROM amazon/aws-lambda-python:3.9
 
@@ -339,38 +345,24 @@ EOF
 
 ### Exercise 3.2: Build and Push Lambda Container
 
+#### Build the Lambda container image
 ```bash
-# Build the Lambda container image
 docker build -t lambda-api:${aws_username} .
+```
 
-# Create an ECR repository for the Lambda container. SKIP this step as repository already exists
-aws ecr create-repository --repository-name workshop/lambda-api || true
-
-# Tag the image for ECR
+#### Tag the image for ECR
+```bash
 docker tag lambda-api:${aws_username} ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/lambda-api:${aws_username}
+```
 
-# Push the image to ECR
+#### Push the image to ECR
+```bash
 docker push ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/lambda-api:${aws_username}
 ```
 
 ### Exercise 3.3: Create Lambda Function
 
 ```bash
-# Create execution role for Lambda. SKIP as role was created ahead of time.
-# aws iam create-role \
-#   --role-name lambda-container-role \
-#   --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"},"Action":"sts:AssumeRole"}]}' || true
-
-# Attach the Lambda basic execution policy. SKIP.
-# aws iam attach-role-policy \
-#   --role-name lambda-container-role \
-#   --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole || true
-
-# Wait a moment for the role to propagate
-echo "Waiting for IAM role to be ready..."
-sleep 10
-
-# Create the Lambda function
 aws lambda create-function \
   --function-name workshop-container-function-${aws_username} \
   --package-type Image \
@@ -383,41 +375,51 @@ aws lambda create-function \
 
 ### Exercise 3.4: Create API Gateway for Lambda
 
+#### Create an API Gateway REST API
 ```bash
-# Create an API Gateway REST API
 API_ID=$(aws apigateway create-rest-api \
-  --name workshop-container-api-${username} \
+  --name workshop-container-api-${aws_username} \
   --query "id" \
   --output text)
+```
 
-# Get the root resource ID
+#### Get the root resource ID
+```bash
 ROOT_RESOURCE_ID=$(aws apigateway get-resources \
   --rest-api-id $API_ID \
   --query "items[0].id" \
   --output text)
+```
 
-# Create a resource
+#### Create a resource
+```bash
 RESOURCE_ID=$(aws apigateway create-resource \
   --rest-api-id $API_ID \
   --parent-id $ROOT_RESOURCE_ID \
   --path-part "api" \
   --query "id" \
   --output text)
+```
 
-# Create a method
+#### Create a method
+```bash
 aws apigateway put-method \
   --rest-api-id $API_ID \
   --resource-id $RESOURCE_ID \
   --http-method ANY \
   --authorization-type NONE
+```
 
-# Get the Lambda function ARN
+#### Get the Lambda function ARN
+```bash
 LAMBDA_ARN=$(aws lambda get-function \
-  --function-name workshop-container-function-${username} \
+  --function-name workshop-container-function-${aws_username} \
   --query "Configuration.FunctionArn" \
   --output text)
+```
 
-# Create an integration
+#### Create an integration
+```bash
 aws apigateway put-integration \
   --rest-api-id $API_ID \
   --resource-id $RESOURCE_ID \
@@ -425,25 +427,33 @@ aws apigateway put-integration \
   --type AWS_PROXY \
   --integration-http-method POST \
   --uri arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/$LAMBDA_ARN/invocations
+```
 
-# Add Lambda permission
+#### Add Lambda permission
+```bash
 aws lambda add-permission \
   --function-name workshop-container-function-${username} \
   --statement-id apigateway-test \
   --action lambda:InvokeFunction \
   --principal apigateway.amazonaws.com \
   --source-arn "arn:aws:execute-api:us-east-1:$ACCOUNT_ID:$API_ID/*/*/api"
+```
 
-# Deploy the API
+#### Deploy the API
+```bash
 aws apigateway create-deployment \
   --rest-api-id $API_ID \
   --stage-name prod
+```
 
-# Get the API endpoint
+#### Get the API endpoint
+```bash
 API_ENDPOINT="https://$API_ID.execute-api.us-east-1.amazonaws.com/prod/api"
 echo "Lambda API available at: $API_ENDPOINT"
+```
 
-# Test the API
+#### Test the API
+```bash
 curl $API_ENDPOINT
 ```
 
