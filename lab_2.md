@@ -268,7 +268,7 @@ PUBLIC_IP=$(aws ec2 describe-network-interfaces --network-interface-ids $ENI --q
 echo "API Service available at: http://$PUBLIC_IP:8080"
 ```
 
-#### Test the API
+#### Test the API. Feel free to use your browser and go to the address using the IP address:8080 
 ```bash
 curl http://$PUBLIC_IP:8080
 ```
