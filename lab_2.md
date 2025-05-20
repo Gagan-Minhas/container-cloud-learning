@@ -148,12 +148,14 @@ aws ecr describe-images --repository-name workshop/flask-api
 
 Let's create an ECS task definition for our API:
 
+#### Create directory for task definitions
 ```bash
-# Create directory for task definitions
 mkdir -p ~/container-workshop/ecs
 cd ~/container-workshop/ecs
+```
 
-# Create ECS task definition.
+#### Create ECS task definition.
+```bash
 cat > api-task-def.json << EOF
 {
   "family": "flask-api-task-${aws_username}",
@@ -194,41 +196,44 @@ cat > api-task-def.json << EOF
   "memory": "512"
 }
 EOF
+```
 
-# Register the task definition
+#### Register the task definition
+```bash
 aws ecs register-task-definition --cli-input-json file://api-task-def.json
 ```
 
-### Exercise 2.2: Create an ECS Cluster
-
-```bash
-# Create ECS cluster if it doesn't exist. SKIP as it already exists.
-# aws ecs create-cluster --cluster-name WorkshopCluster || true
-```
-
-### Exercise 2.3: Deploy to ECS Fargate
+### Exercise 2.2: Deploy to ECS Fargate
 
 Now let's deploy our container as an ECS service:
 
+#### Get VPC details for task networking
 ```bash
-# Get VPC details for task networking
 # Note: This assumes you have a default VPC. If not, use your own VPC ID.
 VPC_ID=$(aws ec2 describe-vpcs --filters "Name=isDefault,Values=true" --query "Vpcs[0].VpcId" --output text)
+```
 
-# Get public subnets from the VPC
+#### Get public subnets from the VPC
+```bash
 SUBNET_IDS=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" "Name=map-public-ip-on-launch,Values=true" --query "Subnets[0:2].SubnetId" --output text | tr '\t' ',')
+```
 
-# Create a security group for the ECS tasks
+#### Create a security group for the ECS tasks
+```bash
 SG_ID=$(aws ec2 create-security-group --group-name EcsApiTaskSG-$(date +%s) --description "Security group for ECS API tasks" --vpc-id $VPC_ID --query "GroupId" --output text)
+```
 
-# Add inbound rule to the security group
+#### Add inbound rule to the security group
+```bash
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 8080 --cidr 0.0.0.0/0
 
 echo "VPC ID: $VPC_ID"
 echo "Subnet IDs: $SUBNET_IDS"
 echo "Security Group ID: $SG_ID"
+```
 
-# Create the ECS service
+#### Create the ECS service
+```bash
 aws ecs create-service \
   --cluster WorkshopCluster \
   --service-name flask-api-task-${aws_username} \
@@ -239,7 +244,7 @@ aws ecs create-service \
   --tags key=Workshop,value=ContainersInCloud
 ```
 
-### Exercise 2.4: Test ECS Service
+### Exercise 2.3: Test ECS Service
 
 Let's verify our service is running and test it:
 
@@ -247,19 +252,27 @@ Let's verify our service is running and test it:
 # Wait a moment for the service to start
 echo "Waiting for the service to start..."
 sleep 20
+```
 
-# Get the running task
+#### Get the running task
+```bash
 TASK_ARN=$(aws ecs list-tasks --cluster WorkshopCluster --service-name flask-api-task-${aws_username} --query "taskArns[0]" --output text)
+```
 
-# Get the ENI details
+#### Get the ENI details - You need this so you can get the Public IP address of the service
+```bash
 ENI=$(aws ecs describe-tasks --cluster WorkshopCluster --tasks $TASK_ARN --query "tasks[0].attachments[0].details[?name=='networkInterfaceId'].value" --output text)
+```
 
-# Get the public IP
+#### Get the public IP
+```bash
 PUBLIC_IP=$(aws ec2 describe-network-interfaces --network-interface-ids $ENI --query "NetworkInterfaces[0].Association.PublicIp" --output text)
 
 echo "API Service available at: http://$PUBLIC_IP:8080"
+```
 
-# Test the API
+#### Test the API
+```bash
 curl http://$PUBLIC_IP:8080
 ```
 
