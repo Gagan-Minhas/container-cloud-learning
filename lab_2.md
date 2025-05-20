@@ -9,13 +9,13 @@ This workshop guides you through essential container services in AWS with a focu
 First, let's create a simple Flask API that we'll use throughout our exercises:
 
 
-# Create project directory
+#### Create project directory
 ```bash
 mkdir -p ~/container-workshop/flask-api
 cd ~/container-workshop/flask-api
 ```
 
-# Create Flask application
+#### Create Flask application
 ```bash
 cat > app.py << 'EOF'
 from flask import Flask, jsonify
