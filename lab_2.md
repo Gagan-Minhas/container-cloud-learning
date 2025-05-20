@@ -119,9 +119,6 @@ aws_username=$(aws sts get-caller-identity --query "Arn" --output text | cut -d/
 echo "Your AWS Account ID: $ACCOUNT_ID"
 ```
 
-#### Create an ECR repository (if it doesn't exist). In our case it exists, so skip the create-repository step.
-#### aws ecr create-repository --repository-name workshop/flask-api || true
-
 #### Login to Amazon ECR
 ```bash
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
