@@ -123,8 +123,8 @@ aws configure --profile workshop
 export AWS_PROFILE=workshop
 
 # Get AWS account ID
-ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-aws_username=$(aws sts get-caller-identity --query "Arn" --output text | cut -d/ -f2)
+ACCOUNT_ID=$(aws sts get-caller-identity --profile workshop --query Account --output text)
+aws_username=$(aws sts get-caller-identity --profile workshop --query "Arn" --output text | cut -d/ -f2)
 echo "Your AWS Account ID: $ACCOUNT_ID"
 ```
 
