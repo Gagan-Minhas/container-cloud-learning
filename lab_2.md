@@ -75,7 +75,7 @@ EOF
 
 ### Exercise 1.2: Build and Test Locally
 
-Let's build and test our application locally. Replace <YOUR-USERNAME> in this exercise with your actual username.
+Let's build and test our application locally. Replace `<YOUR-USERNAME>` in this exercise with your actual username.
 
 
 #### Build the Docker image
