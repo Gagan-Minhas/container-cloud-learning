@@ -78,9 +78,16 @@ EOF
 Let's build and test our application locally. Replace `<YOUR-USERNAME>` in this exercise with your actual username.
 
 
-#### Build the Docker image
+#### Build the Docker image 
+
+#### If you are on an intel Mac i.e., the old Macs
 ```bash
 docker build -t flask-api:<YOUR-USERNAME> .
+```
+
+#### If you are on the M chip Mac i.e., the newer, fancier Macs
+```bash
+docker build --platform=linux/amd64 -t flask-api:<YOUR-USERNAME> .
 ```
 
 #### Run the container locally
