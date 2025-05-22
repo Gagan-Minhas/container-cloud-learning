@@ -432,7 +432,7 @@ aws apigateway put-integration \
 #### Add Lambda permission
 ```bash
 aws lambda add-permission \
-  --function-name workshop-container-function-${username} \
+  --function-name workshop-container-function-${aws_username} \
   --statement-id apigateway-test \
   --action lambda:InvokeFunction \
   --principal apigateway.amazonaws.com \
