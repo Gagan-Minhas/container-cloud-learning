@@ -15,7 +15,7 @@ mkdir -p ~/container-workshop/flask-api
 cd ~/container-workshop/flask-api
 ```
 
-#### Create Flask application
+#### Create Python Flask application that will be deployed as a container
 ```bash
 cat > app.py << 'EOF'
 from flask import Flask, jsonify
@@ -46,7 +46,7 @@ if __name__ == '__main__':
 EOF
 ```
 
-#### Create requirements.txt
+#### Create requirements.txt to store the app's dependencies
 ```bash
 cat > requirements.txt << 'EOF'
 flask==2.0.1
@@ -54,7 +54,7 @@ werkzeug==2.0.3
 EOF
 ```
 
-#### Create Dockerfile
+#### Create Dockerfile -- the template for the container
 ```bash
 cat > Dockerfile << 'EOF'
 FROM python:3.9-slim
@@ -95,7 +95,7 @@ docker build --platform=linux/amd64 -t flask-api:<YOUR-USERNAME> .
 docker run -d -p 8080:8080 --name api-test flask-api:<YOUR-USERNAME> .
 ```
 
-#### Test the container
+#### Test the container or go to http://localhost:8080 in your browser
 ```bash
 curl http://localhost:8080
 ```
@@ -112,7 +112,7 @@ You should see JSON output with the container ID and timestamp.
 
 Now we'll push our image to Amazon ECR:
 
-#### Configure AWS credentials (if not already configured)
+#### Configure AWS credentials. MAKE SURE the region gets set to us-east-1
 ```bash
 aws configure --profile workshop
 # Enter your AWS Access Key ID when prompted
@@ -138,7 +138,7 @@ aws ecr get-login-password --region us-east-1 | docker login --username AWS --pa
 docker tag flask-api:${aws_username} ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/flask-api:${aws_username}
 ```
 
-#### Push the image to ECR
+#### Push the image to ECR to store the image in the private registry
 ```bash
 docker push ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/flask-api:${aws_username}
 ```
@@ -150,7 +150,7 @@ aws ecr describe-images --repository-name workshop/flask-api
 
 ## CORE LAB 2: DEPLOYING CONTAINERS WITH ECS FARGATE
 
-### Exercise 2.1: Create ECS Task Definition
+### Exercise 2.1: Create ECS Task Definition -- defines the container configuration in ECS
 
 Let's create an ECS task definition for our API:
 
@@ -213,7 +213,7 @@ aws ecs register-task-definition --cli-input-json file://api-task-def.json
 
 Now let's deploy our container as an ECS service:
 
-#### Get VPC details for task networking
+#### Get VPC details for task networking. We need this to make our app available to the internet in a secure way.
 ```bash
 # Note: This assumes you have a default VPC. If not, use your own VPC ID.
 VPC_ID=$(aws ec2 describe-vpcs --filters "Name=isDefault,Values=true" --query "Vpcs[0].VpcId" --output text)
@@ -229,7 +229,7 @@ SUBNET_IDS=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" "Na
 SG_ID=$(aws ec2 create-security-group --group-name EcsApiTaskSG-$(date +%s) --description "Security group for ECS API tasks" --vpc-id $VPC_ID --query "GroupId" --output text)
 ```
 
-#### Add inbound rule to the security group
+#### Add inbound rule to the security group. Enables us to access the app from the public internet
 ```bash
 aws ec2 authorize-security-group-ingress --group-id $SG_ID --protocol tcp --port 8080 --cidr 0.0.0.0/0
 
@@ -292,7 +292,7 @@ mkdir -p ~/container-workshop/lambda
 cd ~/container-workshop/lambda
 ```
 
-#### Create Lambda handler file
+#### Create Lambda handler file -- defines our app code
 ```bash
 cat > app.py << 'EOF'
 import json
@@ -324,7 +324,7 @@ cat > requirements.txt << 'EOF'
 EOF
 ```
 
-#### Create Dockerfile for Lambda
+#### Create Dockerfile for Lambda -- template for our container
 ```bash
 cat > Dockerfile << 'EOF'
 FROM amazon/aws-lambda-python:3.9
@@ -360,7 +360,7 @@ docker tag lambda-api:${aws_username} ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.
 docker push ${ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/workshop/lambda-api:${aws_username}
 ```
 
-### Exercise 3.3: Create Lambda Function
+### Exercise 3.3: Create Lambda Function which runs the container we defined earlier
 
 ```bash
 aws lambda create-function \
@@ -375,7 +375,7 @@ aws lambda create-function \
 
 ### Exercise 3.4: Create API Gateway for Lambda
 
-#### Create an API Gateway REST API
+#### Create an API Gateway REST API. Needed in order to connect to our Lambda Function over the internet securely
 ```bash
 API_ID=$(aws apigateway create-rest-api \
   --name workshop-container-api-${aws_username} \
@@ -410,7 +410,7 @@ aws apigateway put-method \
   --authorization-type NONE
 ```
 
-#### Get the Lambda function ARN
+#### Get the Lambda function ARN which will let us connect API Gateway to the Lambda function
 ```bash
 LAMBDA_ARN=$(aws lambda get-function \
   --function-name workshop-container-function-${aws_username} \
@@ -418,7 +418,7 @@ LAMBDA_ARN=$(aws lambda get-function \
   --output text)
 ```
 
-#### Create an integration
+#### Create an integration to connect API Gateway and the Lambda
 ```bash
 aws apigateway put-integration \
   --rest-api-id $API_ID \
@@ -429,7 +429,7 @@ aws apigateway put-integration \
   --uri arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/$LAMBDA_ARN/invocations
 ```
 
-#### Add Lambda permission
+#### Add Lambda permission to let API Gateway to start the container
 ```bash
 aws lambda add-permission \
   --function-name workshop-container-function-${aws_username} \
@@ -439,7 +439,7 @@ aws lambda add-permission \
   --source-arn "arn:aws:execute-api:us-east-1:$ACCOUNT_ID:$API_ID/*/*/api"
 ```
 
-#### Deploy the API
+#### Deploy the API -- making it available on the internet
 ```bash
 aws apigateway create-deployment \
   --rest-api-id $API_ID \
